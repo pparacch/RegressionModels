@@ -4,7 +4,7 @@ ppar
 
 
 ```
-## [1] "C/C/C/C/C/no_NO.UTF-8"
+## [1] "LC_CTYPE=C;LC_NUMERIC=C;LC_TIME=C;LC_COLLATE=C;LC_MONETARY=C;LC_MESSAGES=en_US.UTF-8;LC_PAPER=nb_NO.UTF-8;LC_NAME=C;LC_ADDRESS=C;LC_TELEPHONE=C;LC_MEASUREMENT=nb_NO.UTF-8;LC_IDENTIFICATION=C"
 ```
 
 #Introduction to Regression - Code Snippet
@@ -88,3 +88,28 @@ g
 ```
 
 ![](RegressionModels_files/figure-html/unnamed-chunk-6-1.png) 
+
+##Regression through the origin 
+
+```r
+library(manipulate)
+library(dplyr)
+y <- galton$child - mean(galton$child)
+x <- galton$parent - mean(galton$parent)
+freqData <- as.data.frame(table(x, y))
+names(freqData) <- c("child", "parent", "freq")
+freqData$child <- as.numeric(as.character(freqData$child))
+freqData$parent <- as.numeric(as.character(freqData$parent))
+myPlot <- function(beta){
+    g <- ggplot(filter(freqData, freq > 0), aes(x = parent, y = child))
+    g <- g  + scale_size(range = c(2, 20), guide = "none" )
+    g <- g + geom_point(colour="grey50", aes(size = freq+20, show_guide = FALSE))
+    g <- g + geom_point(aes(colour=freq, size = freq))
+    g <- g + scale_colour_gradient(low = "lightblue", high="white")                     
+    g <- g + geom_abline(intercept = 0, slope = beta, size = 3)
+    mse <- mean( (y - beta * x) ^2 )
+    g <- g + ggtitle(paste("beta = ", beta, "mse = ", round(mse, 3)))
+    g
+}
+manipulate(myPlot(beta), beta = slider(0.6, 1.2, step = 0.02))
+```
