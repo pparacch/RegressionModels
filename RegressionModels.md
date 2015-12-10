@@ -113,3 +113,41 @@ myPlot <- function(beta){
 }
 manipulate(myPlot(beta), beta = slider(0.6, 1.2, step = 0.02))
 ```
+
+Actually for beta = 0.64 the MSE gets its minimum value (circa 5).
+ 
+ We can quickly calculate the slope for the regression through the origin using the following core function. The value found is the same as the previous (experiment).
+ 
+
+```r
+y <- galton$child
+x <- galton$parent
+fit <- lm(I(y - mean(y)) ~ I(x - mean(x)))
+fit
+## 
+## Call:
+## lm(formula = I(y - mean(y)) ~ I(x - mean(x)))
+## 
+## Coefficients:
+##    (Intercept)  I(x - mean(x))  
+##      6.309e-15       6.463e-01
+summary(fit)
+## 
+## Call:
+## lm(formula = I(y - mean(y)) ~ I(x - mean(x)))
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -7.8050 -1.3661  0.0487  1.6339  5.9264 
+## 
+## Coefficients:
+##                 Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)    6.309e-15  7.348e-02    0.00        1    
+## I(x - mean(x)) 6.463e-01  4.114e-02   15.71   <2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 2.239 on 926 degrees of freedom
+## Multiple R-squared:  0.2105,	Adjusted R-squared:  0.2096 
+## F-statistic: 246.8 on 1 and 926 DF,  p-value: < 2.2e-16
+```
