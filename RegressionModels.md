@@ -4,7 +4,7 @@ ppar
 
 
 ```
-## [1] "LC_CTYPE=C;LC_NUMERIC=C;LC_TIME=C;LC_COLLATE=C;LC_MONETARY=C;LC_MESSAGES=en_US.UTF-8;LC_PAPER=nb_NO.UTF-8;LC_NAME=C;LC_ADDRESS=C;LC_TELEPHONE=C;LC_MEASUREMENT=nb_NO.UTF-8;LC_IDENTIFICATION=C"
+## [1] "C/C/C/C/C/no_NO.UTF-8"
 ```
 
 #Introduction to Regression - Code Snippet
@@ -150,4 +150,188 @@ summary(fit)
 ## Residual standard error: 2.239 on 926 degrees of freedom
 ## Multiple R-squared:  0.2105,	Adjusted R-squared:  0.2096 
 ## F-statistic: 246.8 on 1 and 926 DF,  p-value: < 2.2e-16
+```
+
+Let's plot the best fitting line...
+
+
+```r
+freqData <- as.data.frame(table(galton$child, galton$parent))
+names(freqData) <- c("child", "parent", "freq")
+freqData$child <- as.numeric(as.character(freqData$child))
+freqData$parent <- as.numeric(as.character(freqData$parent))
+g <- ggplot(filter(freqData, freq > 0), aes(x = parent, y = child))
+g <- g  + scale_size(range = c(2, 20), guide = "none" )
+g <- g + geom_point(colour="grey50", aes(size = freq+20, show_guide = FALSE))
+g <- g + geom_point(aes(colour=freq, size = freq))
+g <- g + scale_colour_gradient(low = "lightblue", high="white")                    
+lm1 <- lm(galton$child ~ galton$parent)
+g <- g + geom_abline(intercept = coef(lm1)[1], slope = coef(lm1)[2], size = 3, colour = grey(.5))
+g
+```
+
+![](RegressionModels_files/figure-html/unnamed-chunk-9-1.png) 
+
+
+#Statistical Regression Models Used for Prediction  
+
+__Homework__ 
+__1__ Fit a linear regression model to the father.son dataset: father as predictor & son as response
+Give the P-value for the slope coefficient and perform the relevant hypothesis test.
+
+__2__ Interpret both parameters. Recenter for the intercept if necessary.
+
+__3__ Predict the son height if the father height is 80. Would you reccoment this prediction? Why or why not?
+
+
+```r
+## Part 1
+library(UsingR)
+library(ggplot2)
+data(father.son)
+
+g <- ggplot(father.son, aes(y = sheight, x = fheight))
+g <- g + xlab("Father Height")
+g <- g + ylab("Son Height")
+g <- g + geom_point(size = 5, color = "blue", alpha = 0.2)
+g <- g + geom_smooth(method = "lm", color = "black")
+g
+```
+
+![](RegressionModels_files/figure-html/unnamed-chunk-10-1.png) 
+
+```r
+
+#Calculate parameters of the linear regression model manually
+x <- father.son$fheight
+y <- father.son$sheight
+beta1 <- cor(y,x) * (sd(y)/ sd(x))
+beta0 <- mean(y) - beta1 * mean(x)
+beta0
+## [1] 33.8866
+beta1
+## [1] 0.514093
+
+#Fit a linear regression model to the father.son dataset
+#father as predictor & son as response
+fit <- lm(y ~ x)
+summary(fit)$coefficients
+##              Estimate Std. Error  t value     Pr(>|t|)
+## (Intercept) 33.886604 1.83235382 18.49348 1.604044e-66
+## x            0.514093 0.02704874 19.00618 1.121268e-69
+
+#Lets look at the beta1 coefficients
+#Remember -> response = beta0 + beta1 * predictor
+#                    Estimate Std. Error  t value     Pr(>|t|)
+#(Intercept)        33.886604 1.83235382 18.49348 1.604044e-66
+#father.son$fheight  0.514093 0.02704874 19.00618 1.121268e-69 (****)
+#                                                    (**)
+# The line (****) give information about the following hypothesis testing
+# H0: beta1 = 0 and Ha: beta1 != 0
+# (**) we have a t value of almost 20 and an p-valuo of 10^69.
+# This imply that we are going to reject the null hypothesis (H0) and accept Ha
+# so there is a linear relationship between the son and father heights
+
+
+## Part 2
+#Intercept: expected value of the response when the predictor is 0 (not very meaningful)
+#slope: increase of the resposponse for a unit increase in the predictor
+
+#Shifting can be applied to provide meaning to the Intercept
+x <- father.son$fheight - mean(father.son$fheight)
+y <- father.son$sheight
+
+g <- ggplot(data.frame(x, y), aes(y = y, x = x))
+g <- g + xlab("Father Height - mean")
+g <- g + ylab("Son Height")
+g <- g + geom_point(size = 5, color = "blue", alpha = 0.2)
+g <- g + geom_smooth(method = "lm", color = "black")
+g
+```
+
+![](RegressionModels_files/figure-html/unnamed-chunk-10-2.png) 
+
+```r
+
+fit2 <- lm(y ~ x)
+summary(fit2)$coefficients
+##              Estimate Std. Error   t value     Pr(>|t|)
+## (Intercept) 68.684070 0.07421078 925.52689 0.000000e+00
+## x            0.514093 0.02704874  19.00618 1.121268e-69
+
+#Intercept = 68.68 - the expected value of the response (son height) when 
+#predictor is as the mean of father heights. Nope!! Slope unchanged
+
+##Part 3
+z <- 80
+predict(fit, newdata = data.frame(x = z))
+##        1 
+## 75.01405
+#Estimated heigh is circa 75
+g <- ggplot(father.son, aes(y = sheight, x = fheight))
+g <- g + xlab("Father Height")
+g <- g + ylab("Son Height")
+g <- g + geom_point(size = 5, color = "blue", alpha = 0.2)
+g <- g + geom_smooth(method = "lm", color = "black")
+g <- g + geom_vline(xintercept=75.01405, color = "red", size = 1)
+g
+```
+
+![](RegressionModels_files/figure-html/unnamed-chunk-10-3.png) 
+
+```r
+#Looking at the plot we can see a high variation and few data available for that specific estimate
+#we would not trust much such estimate (look also at the summary of the father data and you will see
+#that we are operating at the edge of the available data for our model..
+```
+
+__4__ Load the mtcarsdataset. Fit a linear regression model with miles per gallon as response and horsepower as predictor.
+Interpret the coefficients and recenter intercept if necessary.
+
+
+```r
+data("mtcars")
+
+g <- ggplot(mtcars, aes(y = mpg, x = hp))
+g <- g + xlab("Horse Power")
+g <- g + ylab("Miles Per Gallon")
+g <- g + geom_point(size = 5, color = "blue", alpha = 0.2)
+g <- g + geom_smooth(method = "lm", color = "black")
+g
+```
+
+![](RegressionModels_files/figure-html/unnamed-chunk-11-1.png) 
+
+```r
+
+fit <- lm(mpg ~ hp, data = mtcars)
+summary(fit)$coefficients
+##                Estimate Std. Error   t value     Pr(>|t|)
+## (Intercept) 30.09886054  1.6339210 18.421246 6.642736e-18
+## hp          -0.06822828  0.0101193 -6.742389 1.787835e-07
+
+#               Estimate Std. Error   t value     Pr(>|t|)
+#(Intercept) 30.09886054  1.6339210 18.421246 6.642736e-18
+#hp          -0.06822828  0.0101193 -6.742389 1.787835e-07
+
+#Intercept -> expected response value when predictor value is 0 (not meaningful)
+#Shifting is necessary in order to give meaning to the intercept
+
+fit <- lm(mpg ~ I(hp - mean(hp)), data = mtcars)
+summary(fit)$coefficients
+##                     Estimate Std. Error   t value     Pr(>|t|)
+## (Intercept)      20.09062500  0.6828817 29.420360 1.101810e-23
+## I(hp - mean(hp)) -0.06822828  0.0101193 -6.742389 1.787835e-07
+
+#                    Estimate Std. Error   t value     Pr(>|t|)
+#(Intercept)      20.09062500  0.6828817 29.420360 1.101810e-23
+#I(hp - mean(hp)) -0.06822828  0.0101193 -6.742389 1.787835e-07
+
+#Now Intercept is the expected response value when predictor has average value of horse power car
+#Slope (not changed with the shifting): increase/decrease of the response for a unit increase in the predictor.
+
+#Is there a linear model between x and y?
+#slope          -0.06822828  0.0101193 -6.742389 1.787835e-07
+#Ho: beta1 = slope = 0, Ha: beta1 = slope != 0
+#t statistic is -6.7 and the P-Value is 10^-7 pretty slow so we can reject the null hypothesis
 ```
