@@ -258,3 +258,97 @@ summary(fit)$coefficients
 #t statistic is -6.7 and the P-Value is 10^-7 pretty slow so we can reject the null hypothesis
 
 ```
+
+#Residuals
+
+__Homework__ 
+__1__ Fit a linear regression model to the father.son dataset with the father as the predictor and the son as the outcome. Plot the son’s height (horizontal axis) versus the residuals (vertical axis).
+
+__2__ Directly estimate the residual variance and compare this estimate to the output of lm.
+
+__3__ Give the R squared for this model.
+
+
+```{r collapse=TRUE, warning=FALSE, message=FALSE}
+library(UsingR)
+data("father.son")
+#x: predictor, y: response
+x <- father.son$fheight
+y <- father.son$sheight
+n <- length(x)
+
+##Part 1
+fit <- lm(y ~ x)
+summary(fit)
+res <- resid(fit)
+
+#Plor residuals vs predictor
+
+plot(x, res,  
+     xlab = "Son Height", 
+     ylab = "Residuals (height)", 
+     bg = "lightblue", 
+     col = "black", cex = 2, pch = 21,frame = FALSE)
+abline(h = 0, lwd = 2)
+for (i in 1 : n) 
+  lines(c(x[i], x[i]), c(res[i], 0), col = "red" , lwd = 2)
+
+
+##Note the possibility to use plot(fit)
+#It will plot interactively different and relevant plots
+#plot(fit)
+
+##Part 2
+#Residual variance
+(1 / (n - 2)) * sum(res^2)
+summary(fit)$sigma^2
+
+##Part 3
+ycappello <- predict(fit)
+a_num <- sum((ycappello - mean(y))^2)
+a_den <- sum((y - mean(y))^2)
+
+rSquared <- a_num/ a_den
+rSquared #25%
+
+summary(fit)$r.squared
+```
+
+__4__ Load the mtcars dataset. Fit a linear regression with miles per gallon as the outcome and
+horsepower as the predictor. Plot horsepower versus the residuals. 
+
+__5__ Directly estimate the residual variance and compare this estimate to the output of lm.
+
+__6__ Give the R squared for this model.
+
+```{r collapse=TRUE, warning=FALSE, message=FALSE}
+##Part4
+data("mtcars")
+response <- mtcars$mpg
+predictor1 <- mtcars$hp
+n <- length(response)
+
+fit <- lm(response ~ predictor1)
+a_residuals <- resid(fit)
+
+plot(predictor1, a_residuals,  
+     xlab = "Horse Power", 
+     ylab = "Residuals (mpg)", 
+     bg = "lightblue", 
+     col = "black", cex = 2, pch = 21,frame = FALSE)
+
+for (i in 1 : n) 
+  lines(c(predictor1[i], predictor1[i]), c(a_residuals[i], 0), col = "red" , lwd = 1)
+
+
+##Part 5
+summary(fit)$sigma^2
+(1/(n-2)) * sum(a_residuals^2)
+
+##Part 6
+responseCappello <- predict(fit)
+a_num = sum((responseCappello - mean(response))^2)
+a_den <- sum((response - mean(response))^2)
+a_num / a_den #R squared
+summary(fit)$r.squared
+```

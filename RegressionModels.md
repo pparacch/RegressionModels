@@ -335,3 +335,135 @@ summary(fit)$coefficients
 #Ho: beta1 = slope = 0, Ha: beta1 = slope != 0
 #t statistic is -6.7 and the P-Value is 10^-7 pretty slow so we can reject the null hypothesis
 ```
+
+#Residuals
+
+__Homework__ 
+__1__ Fit a linear regression model to the father.son dataset with the father as the predictor and the son as the outcome. Plot the son<U+2019>s height (horizontal axis) versus the residuals (vertical axis).
+
+__2__ Directly estimate the residual variance and compare this estimate to the output of lm.
+
+__3__ Give the R squared for this model.
+
+
+
+```r
+library(UsingR)
+data("father.son")
+#x: predictor, y: response
+x <- father.son$fheight
+y <- father.son$sheight
+n <- length(x)
+
+##Part 1
+fit <- lm(y ~ x)
+summary(fit)
+## 
+## Call:
+## lm(formula = y ~ x)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -8.8772 -1.5144 -0.0079  1.6285  8.9685 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(>|t|)    
+## (Intercept) 33.88660    1.83235   18.49   <2e-16 ***
+## x            0.51409    0.02705   19.01   <2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 2.437 on 1076 degrees of freedom
+## Multiple R-squared:  0.2513,	Adjusted R-squared:  0.2506 
+## F-statistic: 361.2 on 1 and 1076 DF,  p-value: < 2.2e-16
+res <- resid(fit)
+
+#Plor residuals vs predictor
+
+plot(x, res,  
+     xlab = "Son Height", 
+     ylab = "Residuals (height)", 
+     bg = "lightblue", 
+     col = "black", cex = 2, pch = 21,frame = FALSE)
+abline(h = 0, lwd = 2)
+for (i in 1 : n) 
+  lines(c(x[i], x[i]), c(res[i], 0), col = "red" , lwd = 2)
+```
+
+![](RegressionModels_files/figure-html/unnamed-chunk-12-1.png) 
+
+```r
+
+
+##Note the possibility to use plot(fit)
+#It will plot interactively different and relevant plots
+#plot(fit)
+
+##Part 2
+#Residual variance
+(1 / (n - 2)) * sum(res^2)
+## [1] 5.936804
+summary(fit)$sigma^2
+## [1] 5.936804
+
+##Part 3
+ycappello <- predict(fit)
+a_num <- sum((ycappello - mean(y))^2)
+a_den <- sum((y - mean(y))^2)
+
+rSquared <- a_num/ a_den
+rSquared #25%
+## [1] 0.2513401
+
+summary(fit)$r.squared
+## [1] 0.2513401
+```
+
+__4__ Load the mtcars dataset. Fit a linear regression with miles per gallon as the outcome and
+horsepower as the predictor. Plot horsepower versus the residuals. 
+
+__5__ Directly estimate the residual variance and compare this estimate to the output of lm.
+
+__6__ Give the R squared for this model.
+
+
+```r
+##Part4
+data("mtcars")
+response <- mtcars$mpg
+predictor1 <- mtcars$hp
+n <- length(response)
+
+fit <- lm(response ~ predictor1)
+a_residuals <- resid(fit)
+
+plot(predictor1, a_residuals,  
+     xlab = "Horse Power", 
+     ylab = "Residuals (mpg)", 
+     bg = "lightblue", 
+     col = "black", cex = 2, pch = 21,frame = FALSE)
+
+for (i in 1 : n) 
+  lines(c(predictor1[i], predictor1[i]), c(a_residuals[i], 0), col = "red" , lwd = 1)
+```
+
+![](RegressionModels_files/figure-html/unnamed-chunk-13-1.png) 
+
+```r
+
+
+##Part 5
+summary(fit)$sigma^2
+## [1] 14.92248
+(1/(n-2)) * sum(a_residuals^2)
+## [1] 14.92248
+
+##Part 6
+responseCappello <- predict(fit)
+a_num = sum((responseCappello - mean(response))^2)
+a_den <- sum((response - mean(response))^2)
+a_num / a_den #R squared
+## [1] 0.6024373
+summary(fit)$r.squared
+## [1] 0.6024373
+```
