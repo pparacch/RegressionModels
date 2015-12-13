@@ -467,3 +467,109 @@ a_num / a_den #R squared
 summary(fit)$r.squared
 ## [1] 0.6024373
 ```
+
+#Regression Inference  
+__Part 1__  
+1. Test whether the slope coefficient for the father.son data is different from zero (father as predictor, son as outcome).  
+2. Refer to question 1. Form a confidence interval for the slope coefficient.  
+3. Refer to question 1. Form a confidence interval for the intercept (center the fathers<U+2019> heights first to get an intercept that is easier to interpret).  
+4. Refer to question 1. Form a mean value interval for the expected son<U+2019>s height at the average father<U+2019>s height.  
+5. Refer to question 1. Form a prediction interval for the son<U+2019>s height at the average father<U+2019>s height.  
+
+
+```r
+rm(list = ls())
+library(UsingR)
+data("father.son")
+x <- father.son$fheight; y <- father.son$sheight
+fit <- lm(y ~ x)
+summary(fit)$coefficients
+##              Estimate Std. Error  t value     Pr(>|t|)
+## (Intercept) 33.886604 1.83235382 18.49348 1.604044e-66
+## x            0.514093 0.02704874 19.00618 1.121268e-69
+```
+1. 
+             Estimate Std. Error  t value     Pr(>|t|)
+(Intercept) 33.886604 1.83235382 18.49348 1.604044e-66
+x            0.514093 0.02704874 19.00618 1.121268e-69
+
+Slope -> Hypothesis Testing H0: slope = 0, Ha: slope != 0
+t-statistic is pretty significant under the Null hypothesis and we can see that the probability of getting a result as extreme as the one  we got is around 10^-69 (zero)... so we can reject the null hypothesis under such conditions.
+There is a linera relationship between the response and the predictor.
+
+```r
+#2. Confidence interval for the slope
+e_beta1 <- summary(fit)$coefficients[2,1]
+se_beta1 <- summary(fit)$coefficients[2,2]
+
+e_beta1 + c(-1, 1) * qt(0.975, fit$df) * se_beta1
+## [1] 0.4610188 0.5671673
+#95% confidence interval  ....
+
+#Another option is to use the confint function
+confint(fit)
+##                  2.5 %     97.5 %
+## (Intercept) 30.2912126 37.4819961
+## x            0.4610188  0.5671673
+```
+
+
+```r
+#3. Confidence interval for the intercept
+#The intercept is the expected value of the response when the predictor is 0 - not very meaningful in this condition
+#Shifting the predictor
+
+x_shifted <- father.son$fheight - mean(father.son$fheight)
+fit2 <- lm(y ~ x_shifted)
+summary(fit2)$coefficients
+##              Estimate Std. Error   t value     Pr(>|t|)
+## (Intercept) 68.684070 0.07421078 925.52689 0.000000e+00
+## x_shifted    0.514093 0.02704874  19.00618 1.121268e-69
+confint(fit2)
+##                  2.5 %     97.5 %
+## (Intercept) 68.5384554 68.8296839
+## x_shifted    0.4610188  0.5671673
+
+#Calculating it from scratch
+beta0_e <- summary(fit2)$coefficients[1,1]
+beta0_se <- summary(fit2)$coefficients[1,2]
+
+beta0_e + c(-1,1) * qt(0.975, df=fit2$df) * beta0_se
+## [1] 68.53846 68.82968
+```
+
+
+```r
+#4. & 5. Mean Interval and Prediction interval
+library(ggplot2)
+x <- father.son$fheight; y <- father.son$sheight
+newx <- data.frame(x = seq(min(x), max(x), length = 100))
+p1 <- data.frame(predict(fit, newdata= newx,interval = ("confidence")))
+p2 <- data.frame(predict(fit, newdata = newx,interval = ("prediction")))
+p1$interval <- "confidence"
+p2$interval <- "prediction"
+p1$x <- newx$x
+p2$x <- newx$x
+dat <- rbind(p1, p2)
+names(dat)[1] <- "y"
+
+g <- ggplot(dat, aes(x = x, y = y))
+g <- g + geom_ribbon(aes(ymin = lwr, ymax = upr, fill = interval), alpha = 0.2) 
+g <- g + geom_line()
+g <- g + geom_vline(xintercept = mean(x), color = "red")
+g <- g + geom_point(data = data.frame(x = x, y=y), aes(x = x, y = y), size = 4)
+g
+```
+
+![](RegressionModels_files/figure-html/unnamed-chunk-17-1.png) 
+
+```r
+
+fatherHeigth_m <- data.frame(x = c(mean(x)))
+predict(fit, newdata= fatherHeigth_m,interval = ("confidence"))
+##        fit      lwr      upr
+## 1 68.68407 68.53846 68.82968
+predict(fit, newdata = fatherHeigth_m,interval = ("prediction"))
+##        fit      lwr      upr
+## 1 68.68407 63.90091 73.46723
+```
