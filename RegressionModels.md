@@ -7,7 +7,7 @@ ppar
 ## [1] "LC_CTYPE=C;LC_NUMERIC=C;LC_TIME=C;LC_COLLATE=C;LC_MONETARY=C;LC_MESSAGES=en_US.UTF-8;LC_PAPER=nb_NO.UTF-8;LC_NAME=C;LC_ADDRESS=C;LC_TELEPHONE=C;LC_MEASUREMENT=nb_NO.UTF-8;LC_IDENTIFICATION=C"
 ```
 
-#Introduction to Regression - Code Snippet
+#Introduction to Regression - Code Snippet  
 
 ##Plotting Marginal Distributions of the __Galton__data. 
 The marginal distribution -> children not considering parents and parents not considering children.
@@ -597,21 +597,21 @@ summary(fit)
 ## lm(formula = y ~ x1 + x2 + x3)
 ## 
 ## Residuals:
-##      Min       1Q   Median       3Q      Max 
-## -0.30954 -0.06320  0.01453  0.05960  0.22878 
+##       Min        1Q    Median        3Q       Max 
+## -0.262304 -0.059578  0.008354  0.057152  0.281413 
 ## 
 ## Coefficients:
 ##              Estimate Std. Error t value Pr(>|t|)    
-## (Intercept) 10.006205   0.010732  932.35   <2e-16 ***
-## x1           0.994422   0.009791  101.57   <2e-16 ***
-## x2           1.006797   0.010298   97.77   <2e-16 ***
-## x3           1.001039   0.009827  101.86   <2e-16 ***
+## (Intercept) 10.008880   0.009577  1045.1   <2e-16 ***
+## x1           1.006639   0.008941   112.6   <2e-16 ***
+## x2           1.005227   0.009070   110.8   <2e-16 ***
+## x3           1.002386   0.008718   115.0   <2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 0.1049 on 96 degrees of freedom
-## Multiple R-squared:  0.9966,	Adjusted R-squared:  0.9965 
-## F-statistic:  9333 on 3 and 96 DF,  p-value: < 2.2e-16
+## Residual standard error: 0.094 on 96 degrees of freedom
+## Multiple R-squared:  0.9975,	Adjusted R-squared:  0.9974 
+## F-statistic: 1.263e+04 on 3 and 96 DF,  p-value: < 2.2e-16
 ```
 
 ```r
@@ -636,7 +636,7 @@ sum(e_x1 * e_y) / sum(e_x1^2)
 ```
 
 ```
-## [1] 0.994422
+## [1] 1.006639
 ```
 
 ```r
@@ -645,10 +645,14 @@ summary(lm(e_y ~ e_x1 - 1))$coefficients
 
 ```
 ##      Estimate  Std. Error  t value      Pr(>|t|)
-## e_x1 0.994422 0.009641233 103.1426 1.443551e-102
+## e_x1 1.006639 0.008804484 114.3325 5.855682e-107
 ```
 __Homework 1__  
-Load datase Seatbelts and fit a linear mode of driver deaths (response) with kms and petrol as predictors. And predict the number of death at the average kms and petrol price.
+1. Load datase Seatbelts and fit a linear mode of driver deaths (response) with kms and petrol as predictors. 
+
+2. And predict the number of death at the average kms and petrol price.
+
+3. Take the residuals fro DriversKilled having regressed out kms and an intercept and the residual fro petrol having regressed out kms and an intercept. Fit a regression through the origin of the two residuals and show that it is the same as the coefficient in step 1.
 
 
 ```r
@@ -794,6 +798,57 @@ predict(fit, newdata = data.frame(x1 = mean(x1), x2 = mean(x2)))
 ```
 ##        1 
 ## 122.8021
+```
+
+```r
+#.3
+seatbelts <- as.data.frame(Seatbelts)
+dk <- seatbelts$DriversKilled
+kms <- seatbelts$kms
+pp <- seatbelts$PetrolPrice
+
+fitfull <- lm(dk ~ kms + pp)
+
+#Regreess kms out of dk including the intercept
+edk <- resid(lm(dk ~ kms))
+#Regreess kms out of pp including the intercept
+epp <- resid(lm(pp ~ kms))
+summary(lm(edk ~ epp - 1)) #no intercept, through the origin
+```
+
+```
+## 
+## Call:
+## lm(formula = edk ~ epp - 1)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+## -51.06 -17.77  -4.15  15.67  59.33 
+## 
+## Coefficients:
+##     Estimate Std. Error t value Pr(>|t|)    
+## epp   -643.8      147.5  -4.364 2.09e-05 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 22.92 on 191 degrees of freedom
+## Multiple R-squared:  0.09068,	Adjusted R-squared:  0.08592 
+## F-statistic: 19.05 on 1 and 191 DF,  p-value: 2.086e-05
+```
+
+```r
+summary(fitfull)$coef
+```
+
+```
+##                  Estimate   Std. Error   t value     Pr(>|t|)
+## (Intercept)  2.157461e+02 1.466559e+01 14.711047 3.772201e-33
+## kms         -1.749546e-03 6.145401e-04 -2.846919 4.902428e-03
+## pp          -6.437895e+02 1.482896e+02 -4.341435 2.304713e-05
+```
+
+```r
+#estimate for the pp is identical usingteh two different way to calculate it
 ```
 
 

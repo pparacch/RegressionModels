@@ -11,7 +11,7 @@ output:
 Sys.setlocale("LC_ALL", "C")
 ```
 
-#Introduction to Regression - Code Snippet
+#Introduction to Regression - Code Snippet  
 
 ##Plotting Marginal Distributions of the __Galton__data. 
 The marginal distribution -> children not considering parents and parents not considering children.
@@ -470,7 +470,11 @@ sum(e_x1 * e_y) / sum(e_x1^2)
 summary(lm(e_y ~ e_x1 - 1))$coefficients
 ```
 __Homework 1__  
-Load datase Seatbelts and fit a linear mode of driver deaths (response) with kms and petrol as predictors. And predict the number of death at the average kms and petrol price.
+1. Load datase Seatbelts and fit a linear mode of driver deaths (response) with kms and petrol as predictors. 
+
+2. And predict the number of death at the average kms and petrol price.
+
+3. Take the residuals fro DriversKilled having regressed out kms and an intercept and the residual fro petrol having regressed out kms and an intercept. Fit a regression through the origin of the two residuals and show that it is the same as the coefficient in step 1.
 
 ```{r}
 library(datasets)
@@ -520,6 +524,22 @@ x2 <- seatbelts$PetrolPrice
 fit <- lm(y ~ x1 + x2)
 predict(fit, newdata = data.frame(x1 = mean(x1), x2 = mean(x2)))
 
+#.3
+seatbelts <- as.data.frame(Seatbelts)
+dk <- seatbelts$DriversKilled
+kms <- seatbelts$kms
+pp <- seatbelts$PetrolPrice
+
+fitfull <- lm(dk ~ kms + pp)
+
+#Regreess kms out of dk including the intercept
+edk <- resid(lm(dk ~ kms))
+#Regreess kms out of pp including the intercept
+epp <- resid(lm(pp ~ kms))
+summary(lm(edk ~ epp - 1)) #no intercept, through the origin
+
+summary(fitfull)$coef
+#estimate for the pp is identical usingteh two different way to calculate it
 ```
 
 
