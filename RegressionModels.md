@@ -4,7 +4,7 @@ ppar
 
 
 ```
-## [1] "C/C/C/C/C/no_NO.UTF-8"
+## [1] "LC_CTYPE=C;LC_NUMERIC=C;LC_TIME=C;LC_COLLATE=C;LC_MONETARY=C;LC_MESSAGES=en_US.UTF-8;LC_PAPER=nb_NO.UTF-8;LC_NAME=C;LC_ADDRESS=C;LC_TELEPHONE=C;LC_MEASUREMENT=nb_NO.UTF-8;LC_IDENTIFICATION=C"
 ```
 
 #Introduction to Regression - Code Snippet
@@ -573,3 +573,228 @@ predict(fit, newdata = fatherHeigth_m,interval = ("prediction"))
 ##        fit      lwr      upr
 ## 1 68.68407 63.90091 73.46723
 ```
+
+#Multivariable Regression Analysis
+##Simulation
+
+```r
+n <- 100
+x1 <- rnorm(n)
+x2 <- rnorm(n)
+x3 <- rnorm(n)
+#Generate the y
+#adding an intercept and a gaussian noise
+y <- 10 + x1 + x2 + x3 + rnorm(n, sd = .1)
+
+#From y, x1, x2, x3 - let's estimate the coefficient model (linear regression model)
+fit <- lm(y ~ x1 + x2 + x3)
+summary(fit)
+```
+
+```
+## 
+## Call:
+## lm(formula = y ~ x1 + x2 + x3)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -0.30954 -0.06320  0.01453  0.05960  0.22878 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(>|t|)    
+## (Intercept) 10.006205   0.010732  932.35   <2e-16 ***
+## x1           0.994422   0.009791  101.57   <2e-16 ***
+## x2           1.006797   0.010298   97.77   <2e-16 ***
+## x3           1.001039   0.009827  101.86   <2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.1049 on 96 degrees of freedom
+## Multiple R-squared:  0.9966,	Adjusted R-squared:  0.9965 
+## F-statistic:  9333 on 3 and 96 DF,  p-value: < 2.2e-16
+```
+
+```r
+#Coefficients:
+#            Estimate Std. Error t value Pr(>|t|)    
+#(Intercept) 10.01663    0.01089  920.02   <2e-16 ***
+#x1           1.00083    0.01111   90.05   <2e-16 ***
+#x2           0.99570    0.01221   81.55   <2e-16 ***
+#x3           0.98936    0.01081   91.54   <2e-16 ***
+
+#Let's try to calculate the coefficient using understandin behind
+#how multivariable regression model works
+
+#Estimate beta1 (x1)
+#Get the residual where the response and predictor(x1) having moved out all of the
+#others predictors (x2, x3) (same for y)
+
+e_x1 <- resid(lm(x1 ~ x2 + x3))
+e_y <- resid(lm(y ~ x2 + x3))
+
+sum(e_x1 * e_y) / sum(e_x1^2)
+```
+
+```
+## [1] 0.994422
+```
+
+```r
+summary(lm(e_y ~ e_x1 - 1))$coefficients
+```
+
+```
+##      Estimate  Std. Error  t value      Pr(>|t|)
+## e_x1 0.994422 0.009641233 103.1426 1.443551e-102
+```
+__Homework 1__  
+Load datase Seatbelts and fit a linear mode of driver deaths (response) with kms and petrol as predictors. And predict the number of death at the average kms and petrol price.
+
+
+```r
+library(datasets)
+data("Seatbelts")
+
+#Setabealts is a time series object so we need to transform into a dataframe
+seatbelts <- as.data.frame(Seatbelts)
+head(seatbelts)
+```
+
+```
+##   DriversKilled drivers front rear   kms PetrolPrice VanKilled law
+## 1           107    1687   867  269  9059   0.1029718        12   0
+## 2            97    1508   825  265  7685   0.1023630         6   0
+## 3           102    1507   806  319  9963   0.1020625        12   0
+## 4            87    1385   814  407 10955   0.1008733         8   0
+## 5           119    1632   991  454 11823   0.1010197        10   0
+## 6           106    1511   945  427 12391   0.1005812        13   0
+```
+
+```r
+fit <- lm(DriversKilled ~ kms + PetrolPrice, data = seatbelts)
+summary(fit)$coefficients
+```
+
+```
+##                  Estimate   Std. Error   t value     Pr(>|t|)
+## (Intercept)  2.157461e+02 1.466559e+01 14.711047 3.772201e-33
+## kms         -1.749546e-03 6.145401e-04 -2.846919 4.902428e-03
+## PetrolPrice -6.437895e+02 1.482896e+02 -4.341435 2.304713e-05
+```
+
+```r
+round(summary(fit)$coef,4)
+```
+
+```
+##              Estimate Std. Error t value Pr(>|t|)
+## (Intercept)  215.7461    14.6656 14.7110   0.0000
+## kms           -0.0017     0.0006 -2.8469   0.0049
+## PetrolPrice -643.7895   148.2896 -4.3414   0.0000
+```
+
+```r
+#Looking at the coefficients (estimated) we can see that they have different magnitudes
+#this make quite difficult to interpret the resul. Moreover if we look at the meaning of
+#the intercept expected no of drivers killed when predictors are set to 0 
+# (0 kms, 0 Petrol Price) (intercept is not very meaningful)
+
+#What we can do is to center the kms and petrol price and maybe rescaling them to a more meaningful. For example looking at the data kms and Petrol Price
+
+summary(seatbelts$kms)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##    7685   12680   14990   14990   17200   21630
+```
+
+```r
+#kms in the magnitude of thousand so 1km change is not actually really meaningful
+
+summary(seatbelts$PetrolPrice)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+## 0.08118 0.09258 0.10450 0.10360 0.11410 0.13300
+```
+
+```r
+#Petrol Price is in the magnitude 10^-1
+
+#Lets do some change to our data structure and create more meaningful data for the regression
+library(dplyr)
+seatbelts <- mutate(seatbelts,
+                   pp = (PetrolPrice - mean(PetrolPrice)) / sd(PetrolPrice),
+                   mm = kms / 1000,
+                   mmc = mm - mean(mm))
+head(seatbelts)
+```
+
+```
+##   DriversKilled drivers front rear   kms PetrolPrice VanKilled law
+## 1           107    1687   867  269  9059   0.1029718        12   0
+## 2            97    1508   825  265  7685   0.1023630         6   0
+## 3           102    1507   806  319  9963   0.1020625        12   0
+## 4            87    1385   814  407 10955   0.1008733         8   0
+## 5           119    1632   991  454 11823   0.1010197        10   0
+## 6           106    1511   945  427 12391   0.1005812        13   0
+##            pp     mm       mmc
+## 1 -0.05356454  9.059 -5.934604
+## 2 -0.10356653  7.685 -7.308604
+## 3 -0.12824699  9.963 -5.030604
+## 4 -0.22591505 10.955 -4.038604
+## 5 -0.21389350 11.823 -3.170604
+## 6 -0.24990592 12.391 -2.602604
+```
+
+```r
+fit <- lm(DriversKilled ~ mmc + pp, data = seatbelts)
+summary(fit)
+```
+
+```
+## 
+## Call:
+## lm(formula = DriversKilled ~ mmc + pp, data = seatbelts)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+## -51.06 -17.77  -4.15  15.67  59.33 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(>|t|)    
+## (Intercept) 122.8021     1.6629  73.850  < 2e-16 ***
+## mmc          -1.7495     0.6145  -2.847   0.0049 ** 
+## pp           -7.8387     1.8055  -4.341  2.3e-05 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 23.04 on 189 degrees of freedom
+## Multiple R-squared:  0.1844,	Adjusted R-squared:  0.1758 
+## F-statistic: 21.37 on 2 and 189 DF,  p-value: 4.292e-09
+```
+
+```r
+#Now the data seems more reasonable and meaningful (holding other predictors constant)
+# mmc 1.7 decrease in death for a 1 increment (1000km) from the mean
+# pp 7.83 decrease in death for a 1 standard deviation change in pp  
+
+#Predict number of death for the average kms and PetrolPrice
+seatbelts <- as.data.frame(Seatbelts)
+y <- seatbelts$DriversKilled
+x1 <- seatbelts$kms
+x2 <- seatbelts$PetrolPrice
+
+fit <- lm(y ~ x1 + x2)
+predict(fit, newdata = data.frame(x1 = mean(x1), x2 = mean(x2)))
+```
+
+```
+##        1 
+## 122.8021
+```
+
+
+
