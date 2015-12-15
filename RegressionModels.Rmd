@@ -541,6 +541,27 @@ summary(lm(edk ~ epp - 1)) #no intercept, through the origin
 summary(fitfull)$coef
 #estimate for the pp is identical usingteh two different way to calculate it
 ```
+#Multivariate Examples & Tricks
 
+```{r collapse=TRUE}
+require(datasets)
+require(GGally)
+require(ggplot2)
+
+data("swiss")
+#?swiss
+g <- ggpairs(swiss, lower = list(continuous = "smooth"), params = c(method = "loess"))
+g
+
+#lets see the result of calling lm on this datase
+summary(lm(Fertility ~ ., data = swiss))
+summary(lm(Fertility ~ ., data = swiss))$coef
+
+#Unudjusted estimates
+summary(lm(Fertility ~ Agriculture, data = swiss))
+
+summary(lm(Fertility ~ Agriculture + Education + Examination, data = swiss))
+
+```
 
 

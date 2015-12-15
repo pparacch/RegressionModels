@@ -598,20 +598,20 @@ summary(fit)
 ## 
 ## Residuals:
 ##       Min        1Q    Median        3Q       Max 
-## -0.262304 -0.059578  0.008354  0.057152  0.281413 
+## -0.268787 -0.051476 -0.005464  0.058475  0.212528 
 ## 
 ## Coefficients:
-##              Estimate Std. Error t value Pr(>|t|)    
-## (Intercept) 10.008880   0.009577  1045.1   <2e-16 ***
-## x1           1.006639   0.008941   112.6   <2e-16 ***
-## x2           1.005227   0.009070   110.8   <2e-16 ***
-## x3           1.002386   0.008718   115.0   <2e-16 ***
+##             Estimate Std. Error t value Pr(>|t|)    
+## (Intercept) 9.997932   0.009212  1085.3   <2e-16 ***
+## x1          0.997957   0.008371   119.2   <2e-16 ***
+## x2          1.003366   0.009396   106.8   <2e-16 ***
+## x3          0.995522   0.008608   115.6   <2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 0.094 on 96 degrees of freedom
-## Multiple R-squared:  0.9975,	Adjusted R-squared:  0.9974 
-## F-statistic: 1.263e+04 on 3 and 96 DF,  p-value: < 2.2e-16
+## Residual standard error: 0.09152 on 96 degrees of freedom
+## Multiple R-squared:  0.998,	Adjusted R-squared:  0.9979 
+## F-statistic: 1.568e+04 on 3 and 96 DF,  p-value: < 2.2e-16
 ```
 
 ```r
@@ -636,7 +636,7 @@ sum(e_x1 * e_y) / sum(e_x1^2)
 ```
 
 ```
-## [1] 1.006639
+## [1] 0.9979568
 ```
 
 ```r
@@ -644,8 +644,8 @@ summary(lm(e_y ~ e_x1 - 1))$coefficients
 ```
 
 ```
-##      Estimate  Std. Error  t value      Pr(>|t|)
-## e_x1 1.006639 0.008804484 114.3325 5.855682e-107
+##       Estimate  Std. Error  t value      Pr(>|t|)
+## e_x1 0.9979568 0.008243474 121.0602 2.120921e-109
 ```
 __Homework 1__  
 1. Load datase Seatbelts and fit a linear mode of driver deaths (response) with kms and petrol as predictors. 
@@ -850,6 +850,84 @@ summary(fitfull)$coef
 ```r
 #estimate for the pp is identical usingteh two different way to calculate it
 ```
+#Multivariate Examples & Tricks
 
+
+```r
+require(datasets)
+require(GGally)
+## Loading required package: GGally
+## 
+## Attaching package: 'GGally'
+## 
+## The following object is masked from 'package:dplyr':
+## 
+##     nasa
+require(ggplot2)
+
+data("swiss")
+#?swiss
+g <- ggpairs(swiss, lower = list(continuous = "smooth"), params = c(method = "loess"))
+g
+```
+
+![](RegressionModels_files/figure-html/unnamed-chunk-20-1.png) 
+
+```r
+
+#lets see the result of calling lm on this datase
+summary(lm(Fertility ~ ., data = swiss))
+## 
+## Call:
+## lm(formula = Fertility ~ ., data = swiss)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -15.2743  -5.2617   0.5032   4.1198  15.3213 
+## 
+## Coefficients:
+##                  Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)      66.91518   10.70604   6.250 1.91e-07 ***
+## Agriculture      -0.17211    0.07030  -2.448  0.01873 *  
+## Examination      -0.25801    0.25388  -1.016  0.31546    
+## Education        -0.87094    0.18303  -4.758 2.43e-05 ***
+## Catholic          0.10412    0.03526   2.953  0.00519 ** 
+## Infant.Mortality  1.07705    0.38172   2.822  0.00734 ** 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 7.165 on 41 degrees of freedom
+## Multiple R-squared:  0.7067,	Adjusted R-squared:  0.671 
+## F-statistic: 19.76 on 5 and 41 DF,  p-value: 5.594e-10
+summary(lm(Fertility ~ ., data = swiss))$coef
+##                    Estimate  Std. Error   t value     Pr(>|t|)
+## (Intercept)      66.9151817 10.70603759  6.250229 1.906051e-07
+## Agriculture      -0.1721140  0.07030392 -2.448142 1.872715e-02
+## Examination      -0.2580082  0.25387820 -1.016268 3.154617e-01
+## Education        -0.8709401  0.18302860 -4.758492 2.430605e-05
+## Catholic          0.1041153  0.03525785  2.952969 5.190079e-03
+## Infant.Mortality  1.0770481  0.38171965  2.821568 7.335715e-03
+
+#Unudjusted estimates
+summary(lm(Fertility ~ Agriculture, data = swiss))
+## 
+## Call:
+## lm(formula = Fertility ~ Agriculture, data = swiss)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -25.5374  -7.8685  -0.6362   9.0464  24.4858 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(>|t|)    
+## (Intercept) 60.30438    4.25126  14.185   <2e-16 ***
+## Agriculture  0.19420    0.07671   2.532   0.0149 *  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 11.82 on 45 degrees of freedom
+## Multiple R-squared:  0.1247,	Adjusted R-squared:  0.1052 
+## F-statistic: 6.409 on 1 and 45 DF,  p-value: 0.01492
+```
 
 
