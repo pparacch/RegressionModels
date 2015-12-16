@@ -564,4 +564,76 @@ summary(lm(Fertility ~ Agriculture + Education + Examination, data = swiss))
 
 ```
 
+__Homework 1__  
+1. Load datase Seatbelts and fit a linear mode of driver deaths (response) with kms and petrol as predictors.
+
+2. Repeat question 1 for the outcome being the log of the count of driver deaths. Interpret your coefficients.
+
+3. Add the dummy variable law and interpret the results. Repeat this question
+with a factor variable that you create called lawFactor that takes the levels No and Yes. Change the reference level from No to Yes.
+
+4. Discretize the PetrolPrice variable into four factor levels. Fit the linear model with this factor to see how R treats multiple level factor variables
+
+```{r collapse=TRUE}
+library(datasets)
+data("Seatbelts")
+
+#Setabealts is a time series object so we need to transform into a dataframe
+seatbelts <- as.data.frame(Seatbelts)
+head(seatbelts)
+
+fit <- lm(DriversKilled ~ kms + PetrolPrice, data = seatbelts)
+summary(fit)$coefficients
+round(summary(fit)$coef,4)
+```
+
+```{r collapse=TRUE}
+library(datasets)
+data("Seatbelts")
+seatbelts <- as.data.frame(Seatbelts)
+#2.
+#logging of the outcome
+library(dplyr)
+#normalized in order to have a better scale
+seatbelts <- mutate(seatbelts,
+                   pp = (PetrolPrice - mean(PetrolPrice)) / sd(PetrolPrice),
+                   mm = kms / 1000,
+                   mmc = mm - mean(mm))
+head(seatbelts)
+
+fit <- lm(I(log(DriversKilled)) ~ mmc + pp, data = seatbelts)
+summary(fit)$coefficients
+
+#All of the estimates are now interpreted in the log scale. We can then
+exp( -0.06412578)
+1 - exp( -0.06412578)
+#circa 6% decrease in geometric mean death for a 1 sd increase in pp holding mmc constant. 
+#3.
+fit <- lm(DriversKilled ~ mmc + pp + law, data = seatbelts)
+summary(fit)
+#The law variable is an factor variable and this doesc change our intercept.
+#124 (intercept) is the expected number of death for the average ppn, the average km and before the law was in effect (law zero).
+#If we want to know the intercept when the law was in effect we need to add -11.889 to the previous value. 11.889 fewer death were because of the law being in effect.
+#Other variable are interpreted as before (with law variable constant (zero or one)
+```
+
+```{r collapse=TRUE}
+#4.
+library(datasets)
+data("Seatbelts")
+seatbelts <- as.data.frame(Seatbelts)
+seatbelts <- mutate(seatbelts,
+                   pp = (PetrolPrice - mean(PetrolPrice)) / sd(PetrolPrice),
+                   ppf = as.factor((pp <=-1.5)+(pp<=0)+(pp<=1.5)+(pp<Inf)),
+                   mm = kms / 1000,
+                   mmc = mm - mean(mm))
+head(seatbelts)
+table(seatbelts$ppf)
+
+fit <- lm(DriversKilled ~ mmc + ppf + law, data = seatbelts)
+summary(fit)
+
+#ppf1 is used (choosen) as a reference value - while the other are used explicitly in the model. Each coefficient estimate (ppf2, ppf3, ppf4) is interpreted as a comparison to the reference level.
+```
+
 

@@ -597,21 +597,21 @@ summary(fit)
 ## lm(formula = y ~ x1 + x2 + x3)
 ## 
 ## Residuals:
-##       Min        1Q    Median        3Q       Max 
-## -0.268787 -0.051476 -0.005464  0.058475  0.212528 
+##      Min       1Q   Median       3Q      Max 
+## -0.21984 -0.05912  0.00671  0.05816  0.26297 
 ## 
 ## Coefficients:
-##             Estimate Std. Error t value Pr(>|t|)    
-## (Intercept) 9.997932   0.009212  1085.3   <2e-16 ***
-## x1          0.997957   0.008371   119.2   <2e-16 ***
-## x2          1.003366   0.009396   106.8   <2e-16 ***
-## x3          0.995522   0.008608   115.6   <2e-16 ***
+##              Estimate Std. Error t value Pr(>|t|)    
+## (Intercept) 10.004200   0.009852 1015.50   <2e-16 ***
+## x1           1.011389   0.009493  106.55   <2e-16 ***
+## x2           0.995654   0.010314   96.53   <2e-16 ***
+## x3           0.983680   0.011533   85.29   <2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 0.09152 on 96 degrees of freedom
-## Multiple R-squared:  0.998,	Adjusted R-squared:  0.9979 
-## F-statistic: 1.568e+04 on 3 and 96 DF,  p-value: < 2.2e-16
+## Residual standard error: 0.09679 on 96 degrees of freedom
+## Multiple R-squared:  0.997,	Adjusted R-squared:  0.9969 
+## F-statistic: 1.048e+04 on 3 and 96 DF,  p-value: < 2.2e-16
 ```
 
 ```r
@@ -636,7 +636,7 @@ sum(e_x1 * e_y) / sum(e_x1^2)
 ```
 
 ```
-## [1] 0.9979568
+## [1] 1.011389
 ```
 
 ```r
@@ -644,8 +644,8 @@ summary(lm(e_y ~ e_x1 - 1))$coefficients
 ```
 
 ```
-##       Estimate  Std. Error  t value      Pr(>|t|)
-## e_x1 0.9979568 0.008243474 121.0602 2.120921e-109
+##      Estimate Std. Error  t value      Pr(>|t|)
+## e_x1 1.011389 0.00934768 108.1967 1.319826e-104
 ```
 __Homework 1__  
 1. Load datase Seatbelts and fit a linear mode of driver deaths (response) with kms and petrol as predictors. 
@@ -928,6 +928,198 @@ summary(lm(Fertility ~ Agriculture, data = swiss))
 ## Residual standard error: 11.82 on 45 degrees of freedom
 ## Multiple R-squared:  0.1247,	Adjusted R-squared:  0.1052 
 ## F-statistic: 6.409 on 1 and 45 DF,  p-value: 0.01492
+
+summary(lm(Fertility ~ Agriculture + Education + Examination, data = swiss))
+## 
+## Call:
+## lm(formula = Fertility ~ Agriculture + Education + Examination, 
+##     data = swiss)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -14.967  -4.978  -1.045   4.906  21.358 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(>|t|)    
+## (Intercept) 99.80162    7.15523  13.948  < 2e-16 ***
+## Agriculture -0.18017    0.08071  -2.232  0.03084 *  
+## Education   -0.67242    0.19366  -3.472  0.00119 ** 
+## Examination -0.79744    0.24679  -3.231  0.00237 ** 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 8.601 on 43 degrees of freedom
+## Multiple R-squared:  0.5568,	Adjusted R-squared:  0.5259 
+## F-statistic: 18.01 on 3 and 43 DF,  p-value: 1.017e-07
+```
+
+__Homework 1__  
+1. Load datase Seatbelts and fit a linear mode of driver deaths (response) with kms and petrol as predictors.
+
+2. Repeat question 1 for the outcome being the log of the count of driver deaths. Interpret your coefficients.
+
+3. Add the dummy variable law and interpret the results. Repeat this question
+with a factor variable that you create called lawFactor that takes the levels No and Yes. Change the reference level from No to Yes.
+
+4. Discretize the PetrolPrice variable into four factor levels. Fit the linear model with this factor to see how R treats multiple level factor variables
+
+
+```r
+library(datasets)
+data("Seatbelts")
+
+#Setabealts is a time series object so we need to transform into a dataframe
+seatbelts <- as.data.frame(Seatbelts)
+head(seatbelts)
+##   DriversKilled drivers front rear   kms PetrolPrice VanKilled law
+## 1           107    1687   867  269  9059   0.1029718        12   0
+## 2            97    1508   825  265  7685   0.1023630         6   0
+## 3           102    1507   806  319  9963   0.1020625        12   0
+## 4            87    1385   814  407 10955   0.1008733         8   0
+## 5           119    1632   991  454 11823   0.1010197        10   0
+## 6           106    1511   945  427 12391   0.1005812        13   0
+
+fit <- lm(DriversKilled ~ kms + PetrolPrice, data = seatbelts)
+summary(fit)$coefficients
+##                  Estimate   Std. Error   t value     Pr(>|t|)
+## (Intercept)  2.157461e+02 1.466559e+01 14.711047 3.772201e-33
+## kms         -1.749546e-03 6.145401e-04 -2.846919 4.902428e-03
+## PetrolPrice -6.437895e+02 1.482896e+02 -4.341435 2.304713e-05
+round(summary(fit)$coef,4)
+##              Estimate Std. Error t value Pr(>|t|)
+## (Intercept)  215.7461    14.6656 14.7110   0.0000
+## kms           -0.0017     0.0006 -2.8469   0.0049
+## PetrolPrice -643.7895   148.2896 -4.3414   0.0000
+```
+
+
+```r
+library(datasets)
+data("Seatbelts")
+seatbelts <- as.data.frame(Seatbelts)
+#2.
+#logging of the outcome
+library(dplyr)
+#normalized in order to have a better scale
+seatbelts <- mutate(seatbelts,
+                   pp = (PetrolPrice - mean(PetrolPrice)) / sd(PetrolPrice),
+                   mm = kms / 1000,
+                   mmc = mm - mean(mm))
+head(seatbelts)
+##   DriversKilled drivers front rear   kms PetrolPrice VanKilled law
+## 1           107    1687   867  269  9059   0.1029718        12   0
+## 2            97    1508   825  265  7685   0.1023630         6   0
+## 3           102    1507   806  319  9963   0.1020625        12   0
+## 4            87    1385   814  407 10955   0.1008733         8   0
+## 5           119    1632   991  454 11823   0.1010197        10   0
+## 6           106    1511   945  427 12391   0.1005812        13   0
+##            pp     mm       mmc
+## 1 -0.05356454  9.059 -5.934604
+## 2 -0.10356653  7.685 -7.308604
+## 3 -0.12824699  9.963 -5.030604
+## 4 -0.22591505 10.955 -4.038604
+## 5 -0.21389350 11.823 -3.170604
+## 6 -0.24990592 12.391 -2.602604
+
+fit <- lm(I(log(DriversKilled)) ~ mmc + pp, data = seatbelts)
+summary(fit)$coefficients
+##                Estimate  Std. Error    t value      Pr(>|t|)
+## (Intercept)  4.78966306 0.013426810 356.723817 2.737888e-269
+## mmc         -0.01400794 0.004962149  -2.822959  5.267843e-03
+## pp          -0.06412578 0.014579039  -4.398492  1.818005e-05
+
+#All of the estimates are now interpreted in the log scale. We can then
+exp( -0.06412578)
+## [1] 0.937887
+1 - exp( -0.06412578)
+## [1] 0.06211298
+#circa 6% decrease in geometric mean death for a 1 sd increase in pp holding mmc constant. 
+#3.
+fit <- lm(DriversKilled ~ mmc + pp + law, data = seatbelts)
+summary(fit)
+## 
+## Call:
+## lm(formula = DriversKilled ~ mmc + pp + law, data = seatbelts)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+## -50.69 -17.29  -4.05  14.33  60.71 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(>|t|)    
+## (Intercept) 124.2263     1.8012  68.967  < 2e-16 ***
+## mmc          -1.2233     0.6657  -1.838 0.067676 .  
+## pp           -6.9199     1.8514  -3.738 0.000246 ***
+## law         -11.8892     6.0258  -1.973 0.049955 *  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 22.87 on 188 degrees of freedom
+## Multiple R-squared:  0.201,	Adjusted R-squared:  0.1882 
+## F-statistic: 15.76 on 3 and 188 DF,  p-value: 3.478e-09
+#The law variable is an factor variable and this doesc change our intercept.
+#124 (intercept) is the expected number of death for the average ppn, the average km and before the law was in effect (law zero).
+#If we want to know the intercept when the law was in effect we need to add -11.889 to the previous value. 11.889 fewer death were because of the law being in effect.
+#Other variable are interpreted as before (with law variable constant (zero or one)
+```
+
+
+```r
+#4.
+library(datasets)
+data("Seatbelts")
+seatbelts <- as.data.frame(Seatbelts)
+seatbelts <- mutate(seatbelts,
+                   pp = (PetrolPrice - mean(PetrolPrice)) / sd(PetrolPrice),
+                   ppf = as.factor((pp <=-1.5)+(pp<=0)+(pp<=1.5)+(pp<Inf)),
+                   mm = kms / 1000,
+                   mmc = mm - mean(mm))
+head(seatbelts)
+##   DriversKilled drivers front rear   kms PetrolPrice VanKilled law
+## 1           107    1687   867  269  9059   0.1029718        12   0
+## 2            97    1508   825  265  7685   0.1023630         6   0
+## 3           102    1507   806  319  9963   0.1020625        12   0
+## 4            87    1385   814  407 10955   0.1008733         8   0
+## 5           119    1632   991  454 11823   0.1010197        10   0
+## 6           106    1511   945  427 12391   0.1005812        13   0
+##            pp ppf     mm       mmc
+## 1 -0.05356454   3  9.059 -5.934604
+## 2 -0.10356653   3  7.685 -7.308604
+## 3 -0.12824699   3  9.963 -5.030604
+## 4 -0.22591505   3 10.955 -4.038604
+## 5 -0.21389350   3 11.823 -3.170604
+## 6 -0.24990592   3 12.391 -2.602604
+table(seatbelts$ppf)
+## 
+##  1  2  3  4 
+##  6 96 71 19
+
+fit <- lm(DriversKilled ~ mmc + ppf + law, data = seatbelts)
+summary(fit)
+## 
+## Call:
+## lm(formula = DriversKilled ~ mmc + ppf + law, data = seatbelts)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -53.384 -17.211  -3.421  14.849  65.613 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(>|t|)    
+## (Intercept) 109.8405     9.5066  11.554   <2e-16 ***
+## mmc          -1.2991     0.7668  -1.694   0.0919 .  
+## ppf2         10.8271     9.9462   1.089   0.2778    
+## ppf3         18.6904     9.9374   1.881   0.0616 .  
+## ppf4         25.0074    10.9163   2.291   0.0231 *  
+## law         -15.3445     6.0345  -2.543   0.0118 *  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 23.24 on 186 degrees of freedom
+## Multiple R-squared:  0.1833,	Adjusted R-squared:  0.1614 
+## F-statistic:  8.35 on 5 and 186 DF,  p-value: 3.835e-07
+
+#ppf1 is used (choosen) as a reference value - while the other are used explicitly in the model. Each coefficient estimate (ppf2, ppf3, ppf4) is interpreted as a comparison to the reference level.
 ```
 
 
