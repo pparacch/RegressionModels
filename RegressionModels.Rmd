@@ -636,4 +636,80 @@ summary(fit)
 #ppf1 is used (choosen) as a reference value - while the other are used explicitly in the model. Each coefficient estimate (ppf2, ppf3, ppf4) is interpreted as a comparison to the reference level.
 ```
 
+```{r echo=FALSE, eval = FALSE}
+#1. Consider the mtcars data set. Fit a model with mpg as the outcome that includes number of cylinders as a factor variable and weight as confounder. Give the adjusted estimate for the expected change in mpg comparing 8 cylinders to 4.
+rm(list = ls())
+data("mtcars")
+str(mtcars)
+y <- mtcars$mpg
+x1 <- as.factor(mtcars$cyl)
+x2 <- mtcars$wt
+table(x1)
 
+fit0 <- lm(y ~ x1 + x2) #adjusted model
+summary(fit0)
+
+data_a <- data.frame(y = y, x1  = x1, x2 = x2)
+fit1 <- lm(y ~ x1 + x2, data = data_a) #adjusted model
+summary(fit1)
+
+data_b <- relevel(data_a$x1, ref = "4")
+fit2 <- lm(y ~ x1 + x2, data = data_b) #adjusted model
+summary(fit2)
+
+#expected change in mpg when comparing 8cyl to 4cyl (reference) is -6.0709
+
+#2. Consider the mtcars data set. Fit a model with mpg as the outcome that includes number of cylinders as a factor variable and weight as a possible confounding variable. Compare the effect of 8 versus 4 cylinders on mpg for the adjusted and unadjusted by weight models. Here, adjusted means including the weight variable as a term in the regression model and unadjusted means the model without weight included. What can be said about the effect comparing 8 and 4 cylinders after looking at models with and without weight included?
+
+rm(list = ls())
+data("mtcars")
+str(mtcars)
+y <- mtcars$mpg; x1 <- as.factor(mtcars$cyl); x2 <- mtcars$wt
+data_a <- data.frame(y = y, x1  = x1, x2 = x2)
+data_b <- relevel(data_a$x1, ref = "4")
+fit_notAdj <- lm(y ~ x1)
+round(summary(fit_notAdj)$coeff, 3)
+#Not adjusted effect 8cyl (versus 4cyl ref): -11.564
+fit_adj <- lm(y ~ x1 + x2)
+round(summary(fit_adj)$coeff, 3)
+#Adjusted effect 8cyl (versus 4cyl ref): -6.071 holding the other regressor constant
+#Conclusion: Holding weight constant, cylinder appears to have less of an impact on mpg than if weight is disregarded.
+
+#3. Consider the mtcars data set. Fit a model with mpg as the outcome that considers number of cylinders as a factor variable and weight as confounder. Now fit a second model with mpg as the outcome model that considers the interaction between number of cylinders (as a factor variable) and weight. Give the P-value for the likelihood ratio test comparing the two models and suggest a model using 0.05 as a type I error rate significance benchmark.
+
+rm(list = ls())
+data("mtcars")
+y <- mtcars$mpg; x1 <- as.factor(mtcars$cyl); x2 <- mtcars$wt
+
+fit1 <- lm(y ~ x1 + x2)
+round(summary(fit1)$coef,3)
+
+fit2 <- lm(y ~ x1 * x2) #Interaction between cylinder and weight
+round(summary(fit2)$coeff,3)
+
+#The P-value is larger than 0.05. So, according to our criterion, we would fail to reject, which suggests that the interaction terms may not be necessary.
+
+#4. Consider the mtcars data set. Fit a model with mpg as the outcome that includes number of cylinders as a factor variable and weight inlcuded in the model as lm(mpg ~ I(wt * 0.5) + factor(cyl), data = mtcars). How is the wt coefficient interpretted?
+
+rm(list = ls())
+data("mtcars")
+
+fit <- lm(mpg ~ I(wt * 0.5) + factor(cyl), data = mtcars)
+round(summary(fit)$coef,3)
+#The estimated expected change in MPG per one ton increase in weight.
+
+#5. Give the hat diagonal for the most influential point
+rm(list = ls())
+x <- c(0.586, 0.166, -0.042, -0.614, 11.72)
+y <- c(0.549, -0.026, -0.127, -0.751, 1.344)
+
+fit <- lm(y ~ x)
+max(hatvalues(fit))
+#0.9946
+
+#Give the slope dfbeta for the point with the highest hat value.
+round(dfbetas(fit),0)
+#-134
+
+#7. It is possible for the coefficient to reverse sign after adjustment. For example, it can be strongly significant and positive before adjustment and strongly significant and negative after adjustment.
+```

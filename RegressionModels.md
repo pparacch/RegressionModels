@@ -4,7 +4,7 @@ ppar
 
 
 ```
-## [1] "LC_CTYPE=C;LC_NUMERIC=C;LC_TIME=C;LC_COLLATE=C;LC_MONETARY=C;LC_MESSAGES=en_US.UTF-8;LC_PAPER=nb_NO.UTF-8;LC_NAME=C;LC_ADDRESS=C;LC_TELEPHONE=C;LC_MEASUREMENT=nb_NO.UTF-8;LC_IDENTIFICATION=C"
+## [1] "C/C/C/C/C/no_NO.UTF-8"
 ```
 
 #Introduction to Regression - Code Snippet  
@@ -597,21 +597,21 @@ summary(fit)
 ## lm(formula = y ~ x1 + x2 + x3)
 ## 
 ## Residuals:
-##      Min       1Q   Median       3Q      Max 
-## -0.21984 -0.05912  0.00671  0.05816  0.26297 
+##       Min        1Q    Median        3Q       Max 
+## -0.239335 -0.069848  0.005162  0.074267  0.266846 
 ## 
 ## Coefficients:
-##              Estimate Std. Error t value Pr(>|t|)    
-## (Intercept) 10.004200   0.009852 1015.50   <2e-16 ***
-## x1           1.011389   0.009493  106.55   <2e-16 ***
-## x2           0.995654   0.010314   96.53   <2e-16 ***
-## x3           0.983680   0.011533   85.29   <2e-16 ***
+##             Estimate Std. Error t value Pr(>|t|)    
+## (Intercept) 10.01122    0.01031  970.69   <2e-16 ***
+## x1           0.98044    0.01018   96.35   <2e-16 ***
+## x2           0.98381    0.01107   88.88   <2e-16 ***
+## x3           1.02023    0.01044   97.75   <2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 0.09679 on 96 degrees of freedom
-## Multiple R-squared:  0.997,	Adjusted R-squared:  0.9969 
-## F-statistic: 1.048e+04 on 3 and 96 DF,  p-value: < 2.2e-16
+## Residual standard error: 0.1026 on 96 degrees of freedom
+## Multiple R-squared:  0.9952,	Adjusted R-squared:  0.9951 
+## F-statistic:  6700 on 3 and 96 DF,  p-value: < 2.2e-16
 ```
 
 ```r
@@ -636,7 +636,7 @@ sum(e_x1 * e_y) / sum(e_x1^2)
 ```
 
 ```
-## [1] 1.011389
+## [1] 0.9804356
 ```
 
 ```r
@@ -644,8 +644,8 @@ summary(lm(e_y ~ e_x1 - 1))$coefficients
 ```
 
 ```
-##      Estimate Std. Error  t value      Pr(>|t|)
-## e_x1 1.011389 0.00934768 108.1967 1.319826e-104
+##       Estimate Std. Error  t value      Pr(>|t|)
+## e_x1 0.9804356 0.01002062 97.84185 2.547066e-100
 ```
 __Homework 1__  
 1. Load datase Seatbelts and fit a linear mode of driver deaths (response) with kms and petrol as predictors. 
