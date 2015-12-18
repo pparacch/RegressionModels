@@ -1,126 +1,150 @@
 ---
 title: "Regression Models - Course Project"
-author: "Pier Lorenzo Paracchini"
+author: "Pier Lorenzo Paracchini, 18.12.2015"
 output:
   pdf_document: default
   html_document:
     keep_md: yes
+  word_document: default
 ---
 ```{r settingsAndDependencies, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
 Sys.setlocale("LC_ALL", "C")
+require(dplyr)
 require("datasets")
 data("mtcars")
+
+mpg <- mtcars$mpg
+am <- as.factor(mtcars$am)
+hp <- mtcars$hp
+
+mtcars_0 <- filter(mtcars, am == 0)
+mtcars_1 <- filter(mtcars, am == 1)
+
+mpg_avg_0 <- mean(mtcars_0$mpg)
+mpg_avg_1 <- mean(mtcars_1$mpg)
+
+fit_a <- lm(mpg ~ am)
+fit_b <- lm(mpg ~ am + hp)
+
+#Using model b for fitting the model
+coeff_fit <- summary(fit_b)$coefficient
+ci_95_beta0 <- coeff_fit[1,1] + c(-1,1) * qt(.975, df = fit_b$df) * coeff_fit[1,2] 
+ci_95_beta1 <- coeff_fit[2,1] + c(-1,1) * qt(.975, df = fit_b$df) * coeff_fit[2,2] 
+
 ```  
 #Executive Summary
+According to the selected linear regression model __automatic__ models are better for `mpg`. Actually __automatic__ models have an estimated mpg of `r  round(coeff_fit[1,1],3)` (miles per gallon)  with a 95% confidence interval included in [`r round(ci_95_beta0[1],3)` - `r round(ci_95_beta0[2],3)`] while __manual__ models have an increased estimated mpg of `r  round(coeff_fit[2,1],3)` (miles per gallon).
 
 #Data Analysis
-##Exploratory Data Analysis
-The dataset include `r dim(mtcars)[1]` observations of `r dim(mtcars)[2]` features. Each onservations comprises information for a specific automobiles (1973 - 1974 model). More information about the features can be found running `help(mtcars)`.  
+The `mtcars` dataset include `r dim(mtcars)[1]` observations of `r dim(mtcars)[2]` features. Each onservations comprises some information for a specific automobiles (1973 - 1974 model). The focus of this investigation is two specific features __mpg__ (miles per gallon) and __am__ (type of transmission - 0: automatic, 1: manual). 
 
-Focus is on two specific features __mpg__ (miles per US gallon) and __am__ (type of transmission - __0: automatic__, __1: manual__). The available datase contains `r table(mtcars$am)[[1]][1]` automatic car models and `r table(mtcars$am)[[2]][1]` manual car models. The observations of `mpg` by type of transmission `am` can be seen in the hystograms below (__note!__ black line represents the sample mean for the group).
+The available datase contains `r table(mtcars$am)[[1]][1]` automatic car models and `r table(mtcars$am)[[2]][1]` manual car models. The observed `mpg` by type of transmission `am` can be seen in the provided hystogram (see __Appendix, Figure 1__). 
 
-```{r ref.label="histoMpgByAm", echo=FALSE, warning=FALSE, message=FALSE, fig.height=3, fig.width=6}
+From the hystogram we can see that `am` (predictor) is visibly related to `mpg` (outcome) as we can see from the sample mean of each group. The "automatic" group has a lower sample mean (`r round(mpg_avg_0,3)` Miles/ Gallon) than the "manual" group (`r round(mpg_avg_1,3)` Miles/ Gallon).
+
+#Regression Model
+
+##A Simple Model
+The simpler  linear model, we can build, uses `mpg` (as outcome) with `am` as predictor (__`mpg ~ am`__). The coefficients of the fitted model are     
+```{r echo=FALSE}
+summary(fit_a)$coefficient
 ```  
+From the Residual vs Fitted plot (see __Appendix, Figure 2__) we can see that the model is just able to predict two possible values for the estimated `mpg` based on the predictor - __17.147 mpg for automatic models__ and __24.392 mpg for manual models__ with an estimated residuals standard error of __`r round(summary(fit_a)$sigma,3)` mpg__. While the Q-Q plot (see __Appendix, Figure 2__) confirms the normality of the errors (assumption). A more detailed interpration of the simple model can be found in __Appendix, Simple Model Interpretation__.
 
-The `am` feature (predictor) is visibly related to the `mpg` feature (outcome) as we can see from the sample mean of each group. The "automatic" group has a lower sample mean (`r round(mpg_avg_0,3)` Miles/ Gallon) than the "manual" group (`r round(mpg_avg_1,3)` Miles/ Gallon).  
+##Extending the Model adding new features  
+The simple model is quite limited. Looking at the available features, other possible features could be used to identify a "better" model. A possible feature that may be valuable investigating is `hp` (__gross horse power__ in hp). The relationship between `mpg` vs. `hp` by `am` can be seen in __Appendix, Figure 3__.   
 
-##The Regression Model
-Let's fit a __linear model__ using `mpg` (as outcome) with `am` as predictor with errors $\epsilon_i \stackrel{iid}{\sim} N(0, \sigma^2)$. The coefficients of the models are     
-```{r echo=FALSE}
-mpg <- mtcars$mpg; am <- as.factor(mtcars$am)
-fit <- lm(mpg ~ am) 
-summary(fit)$coefficient
+Using the __nested model testing technique__ for the following nested models we can see that, __added feature of model 2 are necessary over model 1__ (P-value < 0.05).
+
+```{r nestedModelResults, echo=FALSE}
+anova(fit_a, fit_b)
 ```  
-```{r echo=FALSE}
-par(mfrow = c(2,2))
-plot(fit)
-```
-From the __Residual vs Fitted__ plot we can see that the model is just able to predict two possible values for the estimated `mpg` (mile per gallon) based on the predictors - __17.147 for automatic models__ and __24.392 for manual models__ with an estimated residuals standard error of __`r round(summary(fit)$sigma,3)`__ (mile per gallon). The __QQplot__ diagnoses normality of the errors. 
+Model 2 (__`mpg ~ am + hp`__) seems to provide a better "description" of the response and it will be used to answer the original questions. See the Residual vs Fitted plot and Q-Q plot (see __Appendix, Figure 4__). 
 
-##Is an automatic or manual transmission better for MPG?  
-Looking at the coefficients   
+__Note!!__ The same process can be executed adding other features to the model in a nested fashion - investigating the overall effect of the new features on the model in an incremental way.
+
+##Findings & Interpretation
+Model 2 (__`mpg ~ am + hp`__) has the following coefficients  
 ```{r echo=FALSE}
-coeff_fit <- summary(fit)$coefficient
-ci_95_beta0 <- coeff_fit[1,1] + c(-1,1) * qt(.975, df = fit$df) * coeff_fit[1,2] 
-ci_95_beta1 <- coeff_fit[2,1] + c(-1,1) * qt(.975, df = fit$df) * coeff_fit[2,2] 
 coeff_fit
 ```  
 
-* __automatic__ models (reference group) have an estimated mpg of `r  round(coeff_fit[1,1],3)` (miles per gallon) with a standard error of `r  round(coeff_fit[1,2],3)` (miles per gallon).
+* __automatic__ models (reference group - `am = 0`) have an estimated mpg of `r  round(coeff_fit[1,1],3)` (miles per gallon) with a standard error of `r  round(coeff_fit[1,2],3)` (miles per gallon).
 
-* __manual__ models have an increased estimated mpg of `r  round(coeff_fit[2,1],3)` (miles per gallon) (over the reference group) with a standard error of `r  round(coeff_fit[2,2],3)` (miles per gallon). The P-value of `r  round(coeff_fit[2,4],3)` (statistically significant) confirms that the __null hypothersis__ (having an increase/ decrease over the reference group null) can be rejected.
+* __manual__ models (`am = 1`) have an increased estimated mpg of `r  round(coeff_fit[2,1],3)` (miles per gallon) (over the reference group) with a standard error of `r  round(coeff_fit[2,2],3)` (miles per gallon). The P-value of `r  round(coeff_fit[2,4],3)` is statistically significant, reject the __null hypothersis__ (having an increase/ decrease over the reference group null).
 
 According to this very simple linear model, __automatic__ transmission is better for __mpg__ than __manual__ transmission. 
 
-##Quantify the MPG difference between automatic and manual transmissions  
 Based on the linear model previosly created we can state that 
 
 *  __automatic__ models use an estimated mpg of `r  round(coeff_fit[1,1],3)` (miles per gallon) with a 95% confidence interval included in [`r round(ci_95_beta0[1],3)` - `r round(ci_95_beta0[2],3)`] miles per gallon.
 *  __manual__ models use an increased estimated mpg of `r  round(coeff_fit[2,1],3)` (miles per gallon) over the reference group with a 95% confidence interval included in [`r round(ci_95_beta1[1],3)` - `r round(ci_95_beta1[2],3)`] miles per gallon.
 
+\newpage
 
-#Description __(ToBeDeleted)__  
-__Interested in exploring the relationship between a set of variables and miles per gallon (MPG) (outcome)__. They are particularly interested in the following two questions:
-
-* “Is an automatic or manual transmission better for MPG”  
-* "Quantify the MPG difference between automatic and manual transmissions"
-
-__Constraints__ Report must be:
-
-* Written as a PDF printout of a compiled (using knitr) R markdown document.  
-* Brief. Roughly the equivalent of 2 pages or less for the main text. Supporting figures in an appendix can be included up to 5 total pages including the 2 for the main report. The appendix can only include figures.  
-* Include a first paragraph executive summary.
-
-
-#Appendix
-Code chunks and plots used in the previous sections.  
-##Dataset Structure    
-```{r dataStructure, echo=TRUE, warning=FALSE, message=FALSE}
-str(mtcars)
-```
-### Some more details about `mpg` and `am` features  
-Some `mpg` relevat statistics.  
-```{r mpgDetails, echo=TRUE, eval=TRUE, collapse=TRUE}
-summary(mtcars$mpg)
-```  
-Number of car models by type of transmission.  
-```{r amDetails, echo=TRUE, eval=TRUE, collapse=TRUE}
-table(mtcars$am)
-```  
-Plot showing the number of car models by type of transmission and mpg.  
-```{r amDetailsExtra, echo=TRUE, eval=TRUE, collapse=TRUE}
-require(dplyr)
-require(ggplot2)
-freqData <- as.data.frame(table(mtcars$mpg, mtcars$am))
-names(freqData) <- c("mpg", "am", "freq")
-
-g <- ggplot(filter(freqData, freq > 0), aes(x = am, y = mpg))
-g <- g  + scale_size(guide = "none" )
-g <- g + geom_point(colour="grey50", aes(size = freq+2, show_guide = TRUE))
-g <- g + geom_point(aes(colour=freq, size = freq))
-g <- g + scale_colour_gradient(low = "lightblue", high="white")
-g <- g + ggtitle("Mile Per (US) Gallon vs. Transmission Type")
-g <- g + xlab("Transmission Type - 0: automatic, 1: manual")
-g <- g + ylab(" Miles/(US) Gallon")
-g
-```  
-Histograms for `mpg` by `am` (transmission type)  
-```{r histoMpgByAm, echo=TRUE, eval=FALSE, warning=FALSE, message=FALSE}
+#Appendix  
+##Figure1: Hystogram of observed `mpg` by `am` (type of transmission)  
+Note the _blue_ line represent the sample mean for each of the type of transmission (0: automatic, 1: manual).  
+```{r histoMpgByAm, echo=FALSE, warning=FALSE, message=FALSE, fig.height=3, fig.width=6}
 require(ggplot2)
 require(dplyr)
 
-mpg_avg_0 <- mean(filter(mtcars, am == 0)$mpg)
-mpg_avg_1 <- mean(filter(mtcars, am == 1)$mpg)
-
-
-#Other possibility
-data_0 <- data.frame(mpg = mtcars$mpg, am = as.factor(mtcars$am))
+data_0 <- data.frame(mpg = mpg, am = as.factor(am))
 data_1 <- data.frame(am = c("0", "1"), mean = c(mpg_avg_0, mpg_avg_1))
 
-g <- ggplot(data_0, aes(x = mpg, fill = am))
+g <- ggplot(data_0, aes(x = mpg, fill = am)) +  theme(text = element_text(size=8))
 g <- g + geom_histogram(colour = "black", binwidth=1)
-g <- g + facet_grid(am ~ .)
-g <- g + geom_vline(data = data_1, aes(xintercept = mean), lwd = 1)
+g <- g + facet_grid(. ~ am)
+g <- g + geom_vline(data = data_1, aes(xintercept = mean), lwd = 1, col="blue")
 g
 
 ```  
+
+##Figure2: Residual Plots for (_`mpg ~ am`_) model
+
+```{r resPlotsMpgVsAm, echo=FALSE, fig.height=3, fig.width=6}
+par(mfrow = c(1,2), cex=0.7)
+plot(fit_a, which = c(1,2))
+```  
+
+##Figure3: (_`mpg vs. hp`_) by _`am`_ (transmission type) plots 
+For each type of transmission the __unadjusted__ line (black), __adjusted__ lines (lightblue for automatic, salmon for manual) and sample averages (horizontal) lines (lightblue for automatic, salmon for manual) are plot.   
+```{r otherFeaturesPlotsByAm, echo=FALSE, fig.height=3, fig.width=6}
+par(mfrow = c(1,1), cex=0.7)
+
+plot(hp, mpg, type="n")
+abline(lm(mpg ~ hp), lwd = 2)
+fit <- lm(mpg ~ hp + am)
+abline(coef(fit)[1], coef(fit)[2], lwd = 2, col="lightblue" )
+abline(h = mean(mtcars_0$mpg), lwd = 2, col="lightblue")
+abline(coef(fit)[1] + coef(fit)[3], coef(fit)[2], lwd = 2, col="salmon")
+abline(h = mean(mtcars_1$mpg), lwd = 2, col="salmon")
+points(mtcars_0$hp, mtcars_0$mpg, pch = 21, col = "black", bg = "lightblue", cex = 2)
+points(mtcars_1$hp, mtcars_1$mpg, pch = 21, col = "black", bg = "salmon", cex = 2)
+legend("topright", legend = c("0 - Automatic", "1 - Manual"), col = c("lightblue", "salmon"), fill = c("lightblue", "salmon"))
+title("mpg vs. hp - adjusted by am")
+```  
+
+##Figure4: Residual Plots for (_`mpg ~ am + hp`_) model  
+```{r resPlotsMpgVsAmWtHp, echo=FALSE, fig.height=3, fig.width=6}
+par(mfrow = c(1,2), cex=0.7)
+plot(fit_b, which = c(1,2))
+```  
+
+##Simple Model Interpretation
+Looking at the coefficients of the simple model (`mpg ~ am`)  
+```{r echo=FALSE}
+coeff_fita <- summary(fit_a)$coefficient
+cia_95_beta0 <- coeff_fita[1,1] + c(-1,1) * qt(.975, df = fit_a$df) * coeff_fita[1,2] 
+cia_95_beta1 <- coeff_fita[2,1] + c(-1,1) * qt(.975, df = fit_a$df) * coeff_fita[2,2] 
+coeff_fita
+```  
+
+* __automatic__ models (reference group) have an estimated mpg of `r  round(coeff_fita[1,1],3)` (miles per gallon) with a standard error of `r  round(coeff_fita[1,2],3)` (miles per gallon).
+
+* __manual__ models have an increased estimated mpg of `r  round(coeff_fita[2,1],3)` (miles per gallon) (over the reference group) with a standard error of `r  round(coeff_fita[2,2],3)` (miles per gallon). The P-value of `r  round(coeff_fita[2,4],3)` (statistically significant) confirms that the __null hypothersis__ (having an increase/ decrease over the reference group null) can be rejected.
+
+Based on the linear model previosly created we can state that 
+
+*  __automatic__ models use an estimated mpg of `r  round(coeff_fita[1,1],3)` (miles per gallon) with a 95% confidence interval included in [`r round(cia_95_beta0[1],3)` - `r round(cia_95_beta0[2],3)`] miles per gallon.
+*  __manual__ models use an increased estimated mpg of `r  round(coeff_fita[2,1],3)` (miles per gallon) over the reference group with a 95% confidence interval included in [`r round(cia_95_beta1[1],3)` - `r round(cia_95_beta1[2],3)`] miles per gallon.
