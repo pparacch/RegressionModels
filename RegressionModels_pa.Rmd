@@ -2,10 +2,10 @@
 title: "Regression Models - Course Project"
 author: "Pier Lorenzo Paracchini, 18.12.2015"
 output:
+  word_document: default
   pdf_document: default
   html_document:
     keep_md: yes
-  word_document: default
 ---
 ```{r settingsAndDependencies, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
 Sys.setlocale("LC_ALL", "C")
@@ -24,66 +24,73 @@ mpg_avg_0 <- mean(mtcars_0$mpg)
 mpg_avg_1 <- mean(mtcars_1$mpg)
 
 fit_a <- lm(mpg ~ am)
-fit_b <- lm(mpg ~ am + hp)
+coeff_fita <- summary(fit_a)$coefficient
+cia_95_beta0 <- coeff_fita[1,1] + c(-1,1) * qt(.975, df = fit_a$df) * coeff_fita[1,2] 
+cia_95_beta1 <- coeff_fita[2,1] + c(-1,1) * qt(.975, df = fit_a$df) * coeff_fita[2,2] 
 
-#Using model b for fitting the model
-coeff_fit <- summary(fit_b)$coefficient
-ci_95_beta0 <- coeff_fit[1,1] + c(-1,1) * qt(.975, df = fit_b$df) * coeff_fit[1,2] 
-ci_95_beta1 <- coeff_fit[2,1] + c(-1,1) * qt(.975, df = fit_b$df) * coeff_fit[2,2] 
+fit_b <- lm(mpg ~ am + hp)
+coeff_fitb <- summary(fit_b)$coefficient
+cib_95_beta0 <- coeff_fitb[1,1] + c(-1,1) * qt(.975, df = fit_b$df) * coeff_fitb[1,2] 
+cib_95_beta1 <- coeff_fitb[2,1] + c(-1,1) * qt(.975, df = fit_b$df) * coeff_fitb[2,2] 
 
 ```  
 #Executive Summary
-According to the selected linear regression model __automatic__ models are better for `mpg`. Actually __automatic__ models have an estimated mpg of `r  round(coeff_fit[1,1],3)` (miles per gallon)  with a 95% confidence interval included in [`r round(ci_95_beta0[1],3)` - `r round(ci_95_beta0[2],3)`] while __manual__ models have an increased estimated mpg of `r  round(coeff_fit[2,1],3)` (miles per gallon).
+__Automatic__ models are better for `mpg`. Actually __automatic__ models have an estimated mpg of `r  round(coeff_fitb[1,1],3)` (miles per gallon)  with a 95% confidence interval included in [`r round(cib_95_beta0[1],3)` - `r round(cib_95_beta0[2],3)`], while __manual__ models have an estimated increased mpg of `r  round(coeff_fitb[2,1],3)` (miles per gallon) over the __automatic__.
 
-#Data Analysis
-The `mtcars` dataset include `r dim(mtcars)[1]` observations of `r dim(mtcars)[2]` features. Each onservations comprises some information for a specific automobiles (1973 - 1974 model). The focus of this investigation is two specific features __mpg__ (miles per gallon) and __am__ (type of transmission - 0: automatic, 1: manual). 
+#Data Exploration and Analysis
+The `mtcars` dataset include `r dim(mtcars)[1]` observations of `r dim(mtcars)[2]` features. Each onservations comprises some information for specific automobiles (1973 - 1974 models). A scatterplot matrix for all features available in the datase is available in __Appendix, Figure 1__. The focus is on `mpg` (miles per gallon) and `am` (type of transmission - 0: automatic, 1: manual). 
 
-The available datase contains `r table(mtcars$am)[[1]][1]` automatic car models and `r table(mtcars$am)[[2]][1]` manual car models. The observed `mpg` by type of transmission `am` can be seen in the provided hystogram (see __Appendix, Figure 1__). 
-
-From the hystogram we can see that `am` (predictor) is visibly related to `mpg` (outcome) as we can see from the sample mean of each group. The "automatic" group has a lower sample mean (`r round(mpg_avg_0,3)` Miles/ Gallon) than the "manual" group (`r round(mpg_avg_1,3)` Miles/ Gallon).
+`mtcars` dataset contains `r table(mtcars$am)[[1]][1]` automatic car models and `r table(mtcars$am)[[2]][1]` manual car models. The observed `mpg` by type of transmission `am` can be seen in the provided hystogram (see __Appendix, Figure 2__). From the sample data, the `am` (predictor) is visibly related to `mpg` (outcome) as we can see from the sample mean of each group. Specifically the "automatic" group has a lower sample mean (`r round(mpg_avg_0,3)` miles per gallon) than the "manual" group (`r round(mpg_avg_1,3)` miles per gallon).
 
 #Regression Model
 
-##A Simple Model
-The simpler  linear model, we can build, uses `mpg` (as outcome) with `am` as predictor (__`mpg ~ am`__). The coefficients of the fitted model are     
+##Simple Model
+The simple model uses `mpg` (as outcome) using `am` as the only predictor (__`mpg ~ am`__). The coefficients of the fitted model are     
 ```{r echo=FALSE}
 summary(fit_a)$coefficient
 ```  
-From the Residual vs Fitted plot (see __Appendix, Figure 2__) we can see that the model is just able to predict two possible values for the estimated `mpg` based on the predictor - __17.147 mpg for automatic models__ and __24.392 mpg for manual models__ with an estimated residuals standard error of __`r round(summary(fit_a)$sigma,3)` mpg__. While the Q-Q plot (see __Appendix, Figure 2__) confirms the normality of the errors (assumption). A more detailed interpration of the simple model can be found in __Appendix, Simple Model Interpretation__.
+From the Residual vs Fitted plot (see __Appendix, Figure 3__) we can see that the model is just able to predict two possible values for the estimated `mpg` based on the value of the predictor - __`r  round(coeff_fita[1,1],3)` mpg for automatic models__ and __`r  round(coeff_fita[1,1],3) + round(coeff_fita[2,1],3)` mpg for manual models__ with an estimated residuals standard error of __`r round(summary(fit_a)$sigma,3)` mpg__. __`R- squared`__ indicates that this model is able to explain only __`r round(summary(fit_a)$r.squared * 100,2)`%__ of the total variability of the data. The Q-Q plot (see __Appendix, Figure 3__) confirms the normality of the errors (assumption).
+
+A more detailed interpration of the simple model can be found in __Appendix, Simple Model Interpretation__.
 
 ##Extending the Model adding new features  
-The simple model is quite limited. Looking at the available features, other possible features could be used to identify a "better" model. A possible feature that may be valuable investigating is `hp` (__gross horse power__ in hp). The relationship between `mpg` vs. `hp` by `am` can be seen in __Appendix, Figure 3__.   
+The simple model is quite limited and other available features could be used to identify a "better" model. A possible feature that may be valuable investigating is `hp` (__gross horse power__ in hp). The relationship between `mpg` vs. `hp` by `am` can be seen in __Appendix, Figure 4__.   
 
 Using the __nested model testing technique__ for the following nested models we can see that, __added feature of model 2 are necessary over model 1__ (P-value < 0.05).
 
 ```{r nestedModelResults, echo=FALSE}
 anova(fit_a, fit_b)
 ```  
-Model 2 (__`mpg ~ am + hp`__) seems to provide a better "description" of the response and it will be used to answer the original questions. See the Residual vs Fitted plot and Q-Q plot (see __Appendix, Figure 4__). 
+Model 2 (__`mpg ~ am + hp`__) seems to provide a better "description" of the response and it will be used to answer the original questions. See the Residual vs Fitted plot and Q-Q plot (see __Appendix, Figure 5__). The estimated residuals standard error of __`r round(summary(fit_b)$sigma,3)` mpg__ is decreased and __`R- squared`__ of __`r round(summary(fit_b)$r.squared * 100,2)`%__ is increased (compared to model 1).
 
 __Note!!__ The same process can be executed adding other features to the model in a nested fashion - investigating the overall effect of the new features on the model in an incremental way.
 
 ##Findings & Interpretation
 Model 2 (__`mpg ~ am + hp`__) has the following coefficients  
 ```{r echo=FALSE}
-coeff_fit
+coeff_fitb
 ```  
 
-* __automatic__ models (reference group - `am = 0`) have an estimated mpg of `r  round(coeff_fit[1,1],3)` (miles per gallon) with a standard error of `r  round(coeff_fit[1,2],3)` (miles per gallon).
+* __automatic__ models (reference group - `am = 0`) have an estimated mpg of `r  round(coeff_fitb[1,1],3)` (miles per gallon) with a standard error of `r  round(coeff_fitb[1,2],3)` (miles per gallon).
 
-* __manual__ models (`am = 1`) have an increased estimated mpg of `r  round(coeff_fit[2,1],3)` (miles per gallon) (over the reference group) with a standard error of `r  round(coeff_fit[2,2],3)` (miles per gallon). The P-value of `r  round(coeff_fit[2,4],3)` is statistically significant, reject the __null hypothersis__ (having an increase/ decrease over the reference group null).
+* __manual__ models (`am = 1`) have an increased estimated mpg of `r  round(coeff_fitb[2,1],3)` (miles per gallon) (over the reference group) with a standard error of `r  round(coeff_fitb[2,2],3)` (miles per gallon). The P-value of `r  round(coeff_fitb[2,4],3)` is statistically significant, reject the __null hypothersis__ (having an increase/ decrease over the reference group null).
 
 According to this very simple linear model, __automatic__ transmission is better for __mpg__ than __manual__ transmission. 
 
 Based on the linear model previosly created we can state that 
 
-*  __automatic__ models use an estimated mpg of `r  round(coeff_fit[1,1],3)` (miles per gallon) with a 95% confidence interval included in [`r round(ci_95_beta0[1],3)` - `r round(ci_95_beta0[2],3)`] miles per gallon.
-*  __manual__ models use an increased estimated mpg of `r  round(coeff_fit[2,1],3)` (miles per gallon) over the reference group with a 95% confidence interval included in [`r round(ci_95_beta1[1],3)` - `r round(ci_95_beta1[2],3)`] miles per gallon.
+*  __automatic__ models use an estimated mpg of `r  round(coeff_fitb[1,1],3)` (miles per gallon) with a 95% confidence interval included in [`r round(cib_95_beta0[1],3)` - `r round(cib_95_beta0[2],3)`] miles per gallon.
+*  __manual__ models use an increased estimated mpg of `r  round(coeff_fitb[2,1],3)` (miles per gallon) over the reference group with a 95% confidence interval included in [`r round(cib_95_beta1[1],3)` - `r round(cib_95_beta1[2],3)`] miles per gallon.
 
 \newpage
 
 #Appendix  
-##Figure1: Hystogram of observed `mpg` by `am` (type of transmission)  
+##Figure1: Scatterplot Matrix for features in `mtcars` dataset  
+```{r scatterplotMatrix, echo=FALSE}
+plot(mtcars)
+```  
+
+##Figure2: Hystogram of observed `mpg` by `am` (type of transmission)  
 Note the _blue_ line represent the sample mean for each of the type of transmission (0: automatic, 1: manual).  
 ```{r histoMpgByAm, echo=FALSE, warning=FALSE, message=FALSE, fig.height=3, fig.width=6}
 require(ggplot2)
@@ -100,14 +107,14 @@ g
 
 ```  
 
-##Figure2: Residual Plots for (_`mpg ~ am`_) model
+##Figure3: Residual Plots for (_`mpg ~ am`_) model
 
 ```{r resPlotsMpgVsAm, echo=FALSE, fig.height=3, fig.width=6}
 par(mfrow = c(1,2), cex=0.7)
 plot(fit_a, which = c(1,2))
 ```  
 
-##Figure3: (_`mpg vs. hp`_) by _`am`_ (transmission type) plots 
+##Figure4: (_`mpg vs. hp`_) by _`am`_ (transmission type) plots 
 For each type of transmission the __unadjusted__ line (black), __adjusted__ lines (lightblue for automatic, salmon for manual) and sample averages (horizontal) lines (lightblue for automatic, salmon for manual) are plot.   
 ```{r otherFeaturesPlotsByAm, echo=FALSE, fig.height=3, fig.width=6}
 par(mfrow = c(1,1), cex=0.7)
@@ -125,7 +132,7 @@ legend("topright", legend = c("0 - Automatic", "1 - Manual"), col = c("lightblue
 title("mpg vs. hp - adjusted by am")
 ```  
 
-##Figure4: Residual Plots for (_`mpg ~ am + hp`_) model  
+##Figure5: Residual Plots for (_`mpg ~ am + hp`_) model  
 ```{r resPlotsMpgVsAmWtHp, echo=FALSE, fig.height=3, fig.width=6}
 par(mfrow = c(1,2), cex=0.7)
 plot(fit_b, which = c(1,2))
@@ -134,9 +141,6 @@ plot(fit_b, which = c(1,2))
 ##Simple Model Interpretation
 Looking at the coefficients of the simple model (`mpg ~ am`)  
 ```{r echo=FALSE}
-coeff_fita <- summary(fit_a)$coefficient
-cia_95_beta0 <- coeff_fita[1,1] + c(-1,1) * qt(.975, df = fit_a$df) * coeff_fita[1,2] 
-cia_95_beta1 <- coeff_fita[2,1] + c(-1,1) * qt(.975, df = fit_a$df) * coeff_fita[2,2] 
 coeff_fita
 ```  
 
@@ -148,3 +152,5 @@ Based on the linear model previosly created we can state that
 
 *  __automatic__ models use an estimated mpg of `r  round(coeff_fita[1,1],3)` (miles per gallon) with a 95% confidence interval included in [`r round(cia_95_beta0[1],3)` - `r round(cia_95_beta0[2],3)`] miles per gallon.
 *  __manual__ models use an increased estimated mpg of `r  round(coeff_fita[2,1],3)` (miles per gallon) over the reference group with a 95% confidence interval included in [`r round(cia_95_beta1[1],3)` - `r round(cia_95_beta1[2],3)`] miles per gallon.
+
+Note that this model is quite limited, __`R- squared`__ indicates that this model is able to explain only __`r round(summary(fit_a)$r.squared * 100,2)`%__ of the total variability of the data.
